@@ -1,16 +1,16 @@
 <?php
 /**
- * LottoExpert.net � Pick 5 Digit Results Intelligence Page
+ * LottoExpert.net - Pick 5 Digit Results Intelligence Page
  * Joomla 5.x + PHP 8.1+
  *
  * Converted from Target Page (Pick-5 digit game) using Reference Page
  * SKAI architecture, visual system, and UX hierarchy.
  *
  * GAME STRUCTURE (detected from target):
- * - Pick 5 daily game: 5 positions, each digit 0�9
+ * - Pick 5 daily game: 5 positions, each digit 0-9
  * - Optional extra ball (Fireball / Wild Ball) stored under a
  *   separate game_id in the same table as a normalized 4-digit value
- * - No classic numbered-ball pool (no range 1�41)
+ * - No classic numbered-ball pool (no range 1-41)
  *
  * ASSUMES gmCode URL parameter is present (e.g., ?gmCode=FLH)
  */
@@ -140,7 +140,7 @@ $doc->addCustomTag('<link rel="canonical" href="' . htmlspecialchars($canonicalN
 $doc->addCustomTag('<link rel="alternate" hreflang="en" href="' . htmlspecialchars($canonicalNoQuery, ENT_QUOTES, 'UTF-8') . '" />');
 $doc->addCustomTag('<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($canonicalNoQuery, ENT_QUOTES, 'UTF-8') . '" />');
 
-$doc->setTitle('Digit Frequency Analysis � ' . $stateName . ' ' . $lotteryName . ' | LottoExpert.net');
+$doc->setTitle('Digit Frequency Analysis - ' . $stateName . ' ' . $lotteryName . ' | LottoExpert.net');
 $doc->setMetaData('description', 'Analyze digit frequency, per-position heatmaps, and combination history for the ' . $stateName . ' ' . $lotteryName . '. Review active digits, quiet positions, draw recency, and complete historical data.');
 
 /* -----------------------------------------------------------------------
@@ -188,10 +188,10 @@ function leFmtDate(?string $date): string
 function leFmtDateLong(?string $date): string
 {
     if (!$date) {
-        return '�';
+        return 'N/A';
     }
     $ts = strtotime($date);
-    return ($ts === false) ? '�' : date('F j, Y', $ts);
+    return ($ts === false) ? 'N/A' : date('F j, Y', $ts);
 }
 
 function leResolveLogo(string $stateAbrev, string $lotteryName): array
@@ -217,7 +217,7 @@ function leCommaList(array $items): string
         }
     ));
 
-    return empty($clean) ? '�' : implode(', ', $clean);
+    return empty($clean) ? 'N/A' : implode(', ', $clean);
 }
 
 function leDrawingsAgoLabel(?int $idx, int $window): array
@@ -260,11 +260,7 @@ function leNormalizeExtraDigits(string $raw): ?string
         return null;
     }
 
-    if (strlen($digits) > 2) {
-        $digits = substr($digits, 0, 2);
-    }
-
-    return str_pad($digits, 2, '0', STR_PAD_LEFT);
+    return (string) ((int) $digits);
 }
 
 function leNormalizeExtraValueFromRow(array $row): ?string
@@ -594,7 +590,7 @@ $quietestKeys   = array_keys($sortedQuiet);
 $quietestLabels = array_map('strval', $quietestKeys);
 $quietestValues = array_values($sortedQuiet);
 
-/* Combined chart: digits 0�9 in natural order */
+/* Combined chart: digits 0-9 in natural order */
 $combinedLabels      = [];
 $combinedValues      = [];
 $recencyChartValues  = [];
@@ -680,7 +676,7 @@ $latestDigits    = [(int) $p1, (int) $p2, (int) $p3, (int) $p4, (int) $p5];
 
 foreach ($latestDigits as $pidx => $digit) {
     $posCol   = $posNames[$pidx];
-    $posLabel = $posDisplayNames[$pidx] . ' � Digit ' . $digit;
+    $posLabel = $posDisplayNames[$pidx] . ' - Digit ' . $digit;
 
     $prevDate = null;
     $drawsAgo = null;
@@ -845,7 +841,7 @@ $formAction  = htmlspecialchars($uri->toString(['path']) . '?gmCode=' . rawurlen
 $jldPage = [
     '@context'    => 'https://schema.org',
     '@type'       => 'WebPage',
-    'name'        => 'Digit Frequency Analysis � ' . $stateName . ' ' . $lotteryName,
+    'name'        => 'Digit Frequency Analysis - ' . $stateName . ' ' . $lotteryName,
     'description' => 'Per-position digit frequency analysis, heatmaps, recency tracking, and combination history for the ' . $stateName . ' ' . $lotteryName . '.',
     'url'         => $canonicalNoQuery,
     'inLanguage'  => 'en',
@@ -1665,7 +1661,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
         <div class="skai-card">
           <div class="skai-card-head skai-card-head--horizon">
             Most active digits
-            <span class="skai-card-sub">Combined frequency across all positions in the last <?php echo (int) $drawRange; ?> draws � sorted by activity</span>
+            <span class="skai-card-sub">Combined frequency across all positions in the last <?php echo (int) $drawRange; ?> draws &ndash; sorted by activity</span>
           </div>
           <div class="skai-card-body">
             <div class="skai-chart-frame">
@@ -1710,7 +1706,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       <div class="skai-two-col">
         <div class="skai-card">
           <div class="skai-card-head skai-card-head--radiant">
-            Current draw � positional recency
+            Current draw &ndash; positional recency
             <span class="skai-card-sub">Previous appearance date and spacing for each latest digit by position</span>
           </div>
           <div class="skai-card-body">
@@ -1781,7 +1777,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
         <div class="skai-card">
           <div class="skai-card-head skai-card-head--horizon">
             Full combined digit distribution
-            <span class="skai-card-sub">All digits 0&ndash;9 combined across all five positions � last <?php echo (int) $drawRange; ?> draws</span>
+            <span class="skai-card-sub">All digits 0&ndash;9 combined across all five positions &ndash; last <?php echo (int) $drawRange; ?> draws</span>
           </div>
           <div class="skai-card-body">
             <div class="skai-chart-frame">
@@ -1789,7 +1785,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             </div>
 
             <h3 style="margin:18px 0 6px;font-size:14px;font-weight:850;color:var(--deep-navy);">Per-position digit heatmap</h3>
-            <p style="margin:0 0 10px;font-size:13px;color:var(--text-soft);line-height:1.6;">Each row is a position (P1�P5). Each column is a digit (0�9). Color intensity reflects relative frequency within that position. Blue = high activity, amber = moderate, light = low.</p>
+            <p style="margin:0 0 10px;font-size:13px;color:var(--text-soft);line-height:1.6;">Each row is a position (P1&ndash;P5). Each column is a digit (0&ndash;9). Color intensity reflects relative frequency within that position. Blue = high activity, amber = moderate, light = low.</p>
 
             <div class="le-heatmap-grid" aria-label="Per-position digit heatmap">
               <?php foreach ($posNames as $pidx => $posCol) : ?>
@@ -1847,7 +1843,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       </div>
 
       <div class="skai-note">
-        The combined distribution and per-position heatmap are best used as reference layers. Numbers that appear concentrated in a specific position may behave differently across positions � the heatmap makes that asymmetry visible. The recency chart shows which digits are furthest from their last combined appearance.
+        The combined distribution and per-position heatmap are best used as reference layers. Numbers that appear concentrated in a specific position may behave differently across positions &ndash; the heatmap makes that asymmetry visible. The recency chart shows which digits are furthest from their last combined appearance.
       </div>
     </div>
   </section>
@@ -1905,7 +1901,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
         <div class="skai-card">
           <div class="skai-card-head skai-card-head--horizon">
             Per-position digit frequency
-            <span class="skai-card-sub">Select a position to view digit 0�9 counts and recency</span>
+            <span class="skai-card-sub">Select a position to view digit 0&ndash;9 counts and recency</span>
           </div>
 
           <div class="skai-pos-tab-bar" aria-label="Position selector" role="tablist">
@@ -1916,7 +1912,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
                 data-pos="<?php echo htmlspecialchars($posNames[$pidx], ENT_QUOTES, 'UTF-8'); ?>"
                 role="tab"
                 aria-selected="<?php echo $pidx === 0 ? 'true' : 'false'; ?>"
-              ><?php echo htmlspecialchars($pshort . ' � ' . $posDisplayNames[$pidx], ENT_QUOTES, 'UTF-8'); ?></button>
+              ><?php echo htmlspecialchars($pshort . ' - ' . $posDisplayNames[$pidx], ENT_QUOTES, 'UTF-8'); ?></button>
             <?php endforeach; ?>
           </div>
 
