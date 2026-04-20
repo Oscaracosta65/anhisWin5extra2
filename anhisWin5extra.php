@@ -2028,7 +2028,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
                     <?php endforeach; ?>
                     <?php if (empty($extraValuesSorted)) : ?>
                       <tr>
-                        <td colspan="4">No 4-digit <?php echo htmlspecialchars((string) $extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> values available in the selected draw range.</td>
+                        <td colspan="4">No 4-digit <?php echo htmlspecialchars((string) $extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> values are available in the selected draw range.</td>
                       </tr>
                     <?php endif; ?>
                   </tbody>
@@ -2197,7 +2197,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     extraValues:     <?php echo json_encode(array_values($extraChartValues)); ?>,
     hasExtra:        <?php echo $extraBallGId ? 'true' : 'false'; ?>
   };
-  var CHART_RETRY_DELAY_MS = 180;
+  var chartRetryDelayMs = 180;
 
   /* ------------------------------------------------------------------
    * Chart.js loader
@@ -2408,7 +2408,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       var pending = renderCharts();
 
       if (pending > 0 && attempts < maxAttempts) {
-        window.setTimeout(attemptRender, CHART_RETRY_DELAY_MS);
+        window.setTimeout(attemptRender, chartRetryDelayMs);
       }
     }
 
@@ -2626,7 +2626,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       window.clearTimeout(window.__leChartResizeTimer);
       window.__leChartResizeTimer = window.setTimeout(function () {
         renderCharts();
-      }, CHART_RETRY_DELAY_MS);
+      }, chartRetryDelayMs);
     });
   }
 
