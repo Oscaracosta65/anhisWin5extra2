@@ -103,8 +103,9 @@ $gameFound     = false;
 foreach ($gameInfoMap as $infoKey => $gameInfo) {
     $matchMain  = ($gameInfo['mainGameId'] === $gId);
     $extraFromMap = null;
-    if (isset($gameInfo['extraBallSuffix']) && preg_match('/^[A-Z0-9]$/', (string) $gameInfo['extraBallSuffix'])) {
-        $extraFromMap = (string) $gameInfo['mainGameId'] . (string) $gameInfo['extraBallSuffix'];
+    $extraSuffix = isset($gameInfo['extraBallSuffix']) ? trim((string) $gameInfo['extraBallSuffix']) : '';
+    if ($extraSuffix !== '' && preg_match('/^[A-Z0-9]$/', $extraSuffix)) {
+        $extraFromMap = (string) $gameInfo['mainGameId'] . $extraSuffix;
     }
     $matchExtra = ($extraFromMap !== null && $extraFromMap === $gId);
 
@@ -240,7 +241,7 @@ function leNormalizeExtraDigits(string $raw): ?string
 {
     $digits = preg_replace('/\D+/', '', $raw);
 
-    if (!is_string($digits) || $digits === '') {
+    if ($digits === null || $digits === '') {
         return null;
     }
 
@@ -711,7 +712,7 @@ if ($extraBallGId && $pb !== null && count($rowsExtra) > 0) {
     }
 
     $drawHistoryRows[] = [
-        'label'    => (string) $extraBallLabel . ' - Value ' . $pb,
+        'label'    => (string) $extraBallLabel . ' – Value ' . $pb,
         'prevDate' => $prevDate,
         'drawsAgo' => $drawsAgo,
         'isBonus'  => true,
@@ -2196,6 +2197,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     extraValues:     <?php echo json_encode(array_values($extraChartValues)); ?>,
     hasExtra:        <?php echo $extraBallGId ? 'true' : 'false'; ?>
   };
+  var CHART_RETRY_DELAY_MS = 180;
 
   /* ------------------------------------------------------------------
    * Chart.js loader
@@ -2333,7 +2335,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
    * ------------------------------------------------------------------ */
   function renderCharts() {
     if (!window.Chart) {
-      return 1;
+      return 0;
     }
 
     var topActiveCanvas   = document.getElementById('topActiveChart');
@@ -2406,7 +2408,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       var pending = renderCharts();
 
       if (pending > 0 && attempts < maxAttempts) {
-        window.setTimeout(attemptRender, 180);
+        window.setTimeout(attemptRender, CHART_RETRY_DELAY_MS);
       }
     }
 
@@ -2624,7 +2626,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       window.clearTimeout(window.__leChartResizeTimer);
       window.__leChartResizeTimer = window.setTimeout(function () {
         renderCharts();
-      }, 180);
+      }, CHART_RETRY_DELAY_MS);
     });
   }
 
