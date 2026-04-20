@@ -1974,8 +1974,8 @@ echo '</a>';
                     
                     echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><br /><span class="pplay">Cash Ball: <span class="circlesFb">'.$posSix.'</span></span></p>';
                 **/
-/** Millionaire For Life GAMES **/
-} else if ($gId === '145' && $stAbrev === 'ky') {
+/** Millionaire For Life GAMES — Multistate **/
+} else if ($gId === '145') {
 
     echo '<p class="lstResult">Last Result: ' . date('m-d-Y', strtotime($dDate)) . '<br /><br />'
         . '<span class="circles">' . $posOne . '</span>'
@@ -1983,7 +1983,8 @@ echo '</a>';
         . '<span class="circles">' . $posThree . '</span>'
         . '<span class="circles">' . $posFour . '</span>'
         . '<span class="circles">' . $posFive . '</span><br />'
-        . '<span class="pplay">Bonus Ball: <span class="circlesFb">' . $posSix . '</span></span></p>';
+        . '<span class="pplay">Life Ball: <span class="circlesFb">' . $posSix . '</span></span>'
+        . '<br /><span class="pplay">Multistate</span></p>';
 
                 /** Arkansas LOTTO GAME - OSCAR ADDED 06/13/23 **/
                 }else if($gName === 'LOTTO' && $stName === 'Arkansas'){
