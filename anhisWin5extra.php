@@ -346,6 +346,7 @@ function leGetLatestResult(\Joomla\Database\DatabaseDriver $db, string $dbCol, s
             $db->quoteName('third'),
             $db->quoteName('fourth'),
             $db->quoteName('fifth'),
+            $db->quoteName('sixth'),
         ])
         ->from($db->quoteName($dbCol))
         ->where($db->quoteName('game_id') . ' = ' . $db->quote($mainGameId))
@@ -366,6 +367,7 @@ function leGetLatestResult(\Joomla\Database\DatabaseDriver $db, string $dbCol, s
                 $db->quoteName('third'),
                 $db->quoteName('fourth'),
                 $db->quoteName('fifth'),
+                $db->quoteName('draw_results'),
             ])
             ->from($db->quoteName($dbCol))
             ->where($db->quoteName('game_id') . ' = ' . $db->quote($extraBallGameId))
@@ -373,7 +375,25 @@ function leGetLatestResult(\Joomla\Database\DatabaseDriver $db, string $dbCol, s
 
         $db->setQuery($eq, 0, 1);
         $extraRow = $db->loadAssoc();
-        $extraValue = is_array($extraRow) ? leNormalizeExtraValueFromRow($extraRow) : null;
+
+        $extraValue = null;
+
+        if (is_array($extraRow)) {
+            $extraValue = leNormalizeExtraValueFromRow($extraRow);
+
+            // Fallback: some games store the extra value only in draw_results (e.g. VA Pick 5 EZ Match).
+            if ($extraValue === null && isset($extraRow['draw_results']) && (string) $extraRow['draw_results'] !== '') {
+                $extraValue = leNormalizeExtraDigits((string) $extraRow['draw_results']);
+            }
+        }
+
+        // Final fallback: read from the sixth column of the main game row (e.g. FL Fireball stored inline).
+        if ($extraValue === null) {
+            $sixth = trim((string) ($row['sixth'] ?? ''));
+            if ($sixth !== '' && preg_match('/\d/', $sixth)) {
+                $extraValue = leNormalizeExtraDigits($sixth);
+            }
+        }
 
         if ($extraValue !== null) {
             $row['extra_ball'] = $extraValue;

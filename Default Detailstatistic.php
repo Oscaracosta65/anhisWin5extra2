@@ -1201,6 +1201,29 @@ if ($mohBonus !== '') {
                         . htmlspecialchars((string) $posSix, ENT_QUOTES, 'UTF-8')
                         . '</span>'
                         . '</p>';
+
+                /** Virginia Pick 5 Evening (VAE) and Pick 5 Day (VAF) with EZ Match **/
+                }else if(($gId === 'VAE' || $gId === 'VAF') && $stateAbrev === 'va'){
+                    $vaExtraGId  = ($gId === 'VAE') ? 'VAEF' : 'VAFF';
+                    $vaDrawYmd   = date('Y-m-d', strtotime((string) $draw_date));
+                    $vaEzRaw     = leFetchDrawResultsByDate($db, $dbCol, $vaExtraGId, $vaDrawYmd, null);
+                    $vaEzMatch   = preg_replace('/\D+/', '', (string) $vaEzRaw);
+                    // Fallback: try sixth column of main row (if EZ Match stored inline)
+                    if ($vaEzMatch === '') {
+                        $vaEzMatch = trim((string) $posSix);
+                    }
+
+                    echo '<p class="lstResult">'
+                        . '<span class="circles">' . htmlspecialchars((string) $posOne,   ENT_QUOTES, 'UTF-8') . '</span>'
+                        . '<span class="circles">' . htmlspecialchars((string) $posTwo,   ENT_QUOTES, 'UTF-8') . '</span>'
+                        . '<span class="circles">' . htmlspecialchars((string) $posThree, ENT_QUOTES, 'UTF-8') . '</span>'
+                        . '<span class="circles">' . htmlspecialchars((string) $posFour,  ENT_QUOTES, 'UTF-8') . '</span>'
+                        . '<span class="circles">' . htmlspecialchars((string) $posFive,  ENT_QUOTES, 'UTF-8') . '</span>'
+                        . ($vaEzMatch !== ''
+                            ? '<span class="le-result-meta"><span class="pplay">EZ Match:</span> '
+                              . htmlspecialchars($vaEzMatch, ENT_QUOTES, 'UTF-8') . '</span>'
+                            : '')
+                        . '</p>';
                     
                     /** Bonus Two Step GAMES **/
                 }else if($gName === 'Texas Two Step' && $stateName === 'Texas'){
