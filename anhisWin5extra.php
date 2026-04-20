@@ -712,7 +712,7 @@ if ($extraBallGId && $pb !== null && count($rowsExtra) > 0) {
     }
 
     $drawHistoryRows[] = [
-        'label'    => (string) $extraBallLabel . ' – Value ' . $pb,
+        'label'    => (string) $extraBallLabel . ' - Value ' . $pb,
         'prevDate' => $prevDate,
         'drawsAgo' => $drawsAgo,
         'isBonus'  => true,
@@ -2197,7 +2197,9 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     extraValues:     <?php echo json_encode(array_values($extraChartValues)); ?>,
     hasExtra:        <?php echo $extraBallGId ? 'true' : 'false'; ?>
   };
-  var chartRetryDelayMs = 180;
+  var CHART_RENDER_RETRY_DELAY_MS = 180;
+  var CHART_RENDER_MAX_RETRIES = 16;
+  var MIN_CHART_CONTAINER_WIDTH = 40;
 
   /* ------------------------------------------------------------------
    * Chart.js loader
@@ -2287,7 +2289,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     }
 
     var parent = canvas.parentNode;
-    if (!parent || parent.clientWidth < 40) {
+    if (!parent || parent.clientWidth < MIN_CHART_CONTAINER_WIDTH) {
       return false;
     }
 
@@ -2401,14 +2403,14 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
 
   function bootChartsWithRetry() {
     var attempts = 0;
-    var maxAttempts = 16;
+    var maxAttempts = CHART_RENDER_MAX_RETRIES;
 
     function attemptRender() {
       attempts++;
       var pending = renderCharts();
 
       if (pending > 0 && attempts < maxAttempts) {
-        window.setTimeout(attemptRender, chartRetryDelayMs);
+        window.setTimeout(attemptRender, CHART_RENDER_RETRY_DELAY_MS);
       }
     }
 
@@ -2623,10 +2625,10 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     loadChartJsIfNeeded(bootChartsWithRetry);
 
     window.addEventListener('resize', function () {
-      window.clearTimeout(window.__leChartResizeTimer);
-      window.__leChartResizeTimer = window.setTimeout(function () {
+      window.clearTimeout(window._leChartResizeTimer);
+      window._leChartResizeTimer = window.setTimeout(function () {
         renderCharts();
-      }, chartRetryDelayMs);
+      }, CHART_RENDER_RETRY_DELAY_MS);
     });
   }
 
