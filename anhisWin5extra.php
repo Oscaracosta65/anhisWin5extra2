@@ -36,6 +36,8 @@ $gameTableMap = [
     'FLG' => '#__lotterydb_fl',
     'PAF' => '#__lotterydb_pa',
     'PAG' => '#__lotterydb_pa',
+    'VAE' => '#__lotterydb_va',
+    'VAF' => '#__lotterydb_va',
 ];
 
 /* -----------------------------------------------------------------------
@@ -73,6 +75,22 @@ $gameInfoMap = [
         'mainGameId'      => 'PAG',
         'extraBallGameId' => 'PAEW',
         'extraBallLabel'  => 'Wild Ball',
+    ],
+    'VAE' => [
+        'state'           => 'Virginia',
+        'stateAbrev'      => 'VA',
+        'lottery'         => 'Pick 5 Evening',
+        'mainGameId'      => 'VAE',
+        'extraBallGameId' => 'VAEF',
+        'extraBallLabel'  => 'EZ Match',
+    ],
+    'VAF' => [
+        'state'           => 'Virginia',
+        'stateAbrev'      => 'VA',
+        'lottery'         => 'Pick 5 Day',
+        'mainGameId'      => 'VAF',
+        'extraBallGameId' => 'VAFF',
+        'extraBallLabel'  => 'EZ Match',
     ],
 ];
 
