@@ -260,11 +260,11 @@ function leNormalizeExtraDigits(string $raw): ?string
         return null;
     }
 
-    if (strlen($digits) > 4) {
-        $digits = substr($digits, 0, 4);
+    if (strlen($digits) > 2) {
+        $digits = substr($digits, 0, 2);
     }
 
-    return str_pad($digits, 4, '0', STR_PAD_LEFT);
+    return str_pad($digits, 2, '0', STR_PAD_LEFT);
 }
 
 function leNormalizeExtraValueFromRow(array $row): ?string
