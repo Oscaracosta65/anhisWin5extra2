@@ -1,16 +1,16 @@
 <?php
 /**
- * LottoExpert.net — Pick 5 Digit Results Intelligence Page
+ * LottoExpert.net ï¿½ Pick 5 Digit Results Intelligence Page
  * Joomla 5.x + PHP 8.1+
  *
  * Converted from Target Page (Pick-5 digit game) using Reference Page
  * SKAI architecture, visual system, and UX hierarchy.
  *
  * GAME STRUCTURE (detected from target):
- * - Pick 5 daily game: 5 positions, each digit 0–9
+ * - Pick 5 daily game: 5 positions, each digit 0ï¿½9
  * - Optional extra ball (Fireball / Wild Ball) stored under a
- *   separate game_id in the same table, digit in 'first' column
- * - No classic numbered-ball pool (no range 1–41)
+ *   separate game_id in the same table as a normalized 4-digit value
+ * - No classic numbered-ball pool (no range 1ï¿½41)
  *
  * ASSUMES gmCode URL parameter is present (e.g., ?gmCode=FLH)
  */
@@ -47,7 +47,7 @@ $gameInfoMap = [
         'stateAbrev'      => 'FL',
         'lottery'         => 'Pick 5 Evening',
         'mainGameId'      => 'FLH',
-        'extraBallGameId' => 'FLHF',
+        'extraBallSuffix' => 'F',
         'extraBallLabel'  => 'Fireball',
     ],
     'FLG' => [
@@ -55,7 +55,7 @@ $gameInfoMap = [
         'stateAbrev'      => 'FL',
         'lottery'         => 'Pick 5 Midday',
         'mainGameId'      => 'FLG',
-        'extraBallGameId' => 'FLGF',
+        'extraBallSuffix' => 'F',
         'extraBallLabel'  => 'Fireball',
     ],
     'PAF' => [
@@ -63,7 +63,7 @@ $gameInfoMap = [
         'stateAbrev'      => 'PA',
         'lottery'         => 'Pick 5 Evening',
         'mainGameId'      => 'PAF',
-        'extraBallGameId' => 'PAFW',
+        'extraBallSuffix' => 'W',
         'extraBallLabel'  => 'Wild Ball',
     ],
     'PAG' => [
@@ -71,7 +71,7 @@ $gameInfoMap = [
         'stateAbrev'      => 'PA',
         'lottery'         => 'Pick 5 Day',
         'mainGameId'      => 'PAG',
-        'extraBallGameId' => 'PAEW',
+        'extraBallSuffix' => 'W',
         'extraBallLabel'  => 'Wild Ball',
     ],
 ];
@@ -102,11 +102,15 @@ $gameFound     = false;
 
 foreach ($gameInfoMap as $infoKey => $gameInfo) {
     $matchMain  = ($gameInfo['mainGameId'] === $gId);
-    $matchExtra = (isset($gameInfo['extraBallGameId']) && $gameInfo['extraBallGameId'] === $gId);
+    $extraFromMap = null;
+    if (isset($gameInfo['extraBallSuffix']) && preg_match('/^[A-Z0-9]$/', (string) $gameInfo['extraBallSuffix'])) {
+        $extraFromMap = (string) $gameInfo['mainGameId'] . (string) $gameInfo['extraBallSuffix'];
+    }
+    $matchExtra = ($extraFromMap !== null && $extraFromMap === $gId);
 
     if ($matchMain || $matchExtra) {
         $mainGameId    = $gameInfo['mainGameId'];
-        $extraBallGId  = isset($gameInfo['extraBallGameId']) ? $gameInfo['extraBallGameId'] : null;
+        $extraBallGId  = $extraFromMap;
         $stateName     = $gameInfo['state'];
         $stateAbrev    = $gameInfo['stateAbrev'];
         $lotteryName   = $gameInfo['lottery'];
@@ -130,7 +134,7 @@ $doc->addCustomTag('<link rel="canonical" href="' . htmlspecialchars($canonicalN
 $doc->addCustomTag('<link rel="alternate" hreflang="en" href="' . htmlspecialchars($canonicalNoQuery, ENT_QUOTES, 'UTF-8') . '" />');
 $doc->addCustomTag('<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($canonicalNoQuery, ENT_QUOTES, 'UTF-8') . '" />');
 
-$doc->setTitle('Digit Frequency Analysis — ' . $stateName . ' ' . $lotteryName . ' | LottoExpert.net');
+$doc->setTitle('Digit Frequency Analysis ï¿½ ' . $stateName . ' ' . $lotteryName . ' | LottoExpert.net');
 $doc->setMetaData('description', 'Analyze digit frequency, per-position heatmaps, and combination history for the ' . $stateName . ' ' . $lotteryName . '. Review active digits, quiet positions, draw recency, and complete historical data.');
 
 /* -----------------------------------------------------------------------
@@ -178,10 +182,10 @@ function leFmtDate(?string $date): string
 function leFmtDateLong(?string $date): string
 {
     if (!$date) {
-        return '—';
+        return 'ï¿½';
     }
     $ts = strtotime($date);
-    return ($ts === false) ? '—' : date('F j, Y', $ts);
+    return ($ts === false) ? 'ï¿½' : date('F j, Y', $ts);
 }
 
 function leResolveLogo(string $stateAbrev, string $lotteryName): array
@@ -207,7 +211,7 @@ function leCommaList(array $items): string
         }
     ));
 
-    return empty($clean) ? '—' : implode(', ', $clean);
+    return empty($clean) ? 'ï¿½' : implode(', ', $clean);
 }
 
 function leDrawingsAgoLabel(?int $idx, int $window): array
@@ -230,6 +234,49 @@ function leEscapeJsString(string $value): string
         ["\\\\", "\\'", '', '', '<\/'],
         $value
     );
+}
+
+function leNormalizeExtraDigits(string $raw): ?string
+{
+    $digits = preg_replace('/\D+/', '', $raw);
+
+    if (!is_string($digits) || $digits === '') {
+        return null;
+    }
+
+    if (strlen($digits) > 4) {
+        $digits = substr($digits, 0, 4);
+    }
+
+    return str_pad($digits, 4, '0', STR_PAD_LEFT);
+}
+
+function leNormalizeExtraValueFromRow(array $row): ?string
+{
+    $cols = ['first', 'second', 'third', 'fourth'];
+    $colDigits = '';
+
+    foreach ($cols as $col) {
+        $v = trim((string) ($row[$col] ?? ''));
+        if (!preg_match('/^[0-9]$/', $v)) {
+            $colDigits = '';
+            break;
+        }
+        $colDigits .= $v;
+    }
+
+    if (strlen($colDigits) === 4) {
+        return $colDigits;
+    }
+
+    $joined = '';
+    $allCols = ['first', 'second', 'third', 'fourth', 'fifth'];
+
+    foreach ($allCols as $col) {
+        $joined .= trim((string) ($row[$col] ?? ''));
+    }
+
+    return leNormalizeExtraDigits($joined);
 }
 
 function leFetchRecentRows(\Joomla\Database\DatabaseDriver $db, string $dbCol, string $gameId, int $limit): array
@@ -283,16 +330,23 @@ function leGetLatestResult(\Joomla\Database\DatabaseDriver $db, string $dbCol, s
 
     if ($extraBallGameId) {
         $eq = $db->getQuery(true)
-            ->select($db->quoteName('first'))
+            ->select([
+                $db->quoteName('first'),
+                $db->quoteName('second'),
+                $db->quoteName('third'),
+                $db->quoteName('fourth'),
+                $db->quoteName('fifth'),
+            ])
             ->from($db->quoteName($dbCol))
             ->where($db->quoteName('game_id') . ' = ' . $db->quote($extraBallGameId))
             ->order($db->quoteName('draw_date') . ' DESC');
 
         $db->setQuery($eq, 0, 1);
-        $extraDigit = $db->loadResult();
+        $extraRow = $db->loadAssoc();
+        $extraValue = is_array($extraRow) ? leNormalizeExtraValueFromRow($extraRow) : null;
 
-        if ($extraDigit !== null) {
-            $row['extra_ball'] = (string) $extraDigit;
+        if ($extraValue !== null) {
+            $row['extra_ball'] = $extraValue;
         }
     }
 
@@ -383,7 +437,7 @@ $p2 = $lr ? trim((string) ($lr['second'] ?? '')) : '';
 $p3 = $lr ? trim((string) ($lr['third'] ?? '')) : '';
 $p4 = $lr ? trim((string) ($lr['fourth'] ?? '')) : '';
 $p5 = $lr ? trim((string) ($lr['fifth'] ?? '')) : '';
-$pb = ($lr && isset($lr['extra_ball'])) ? trim((string) $lr['extra_ball']) : null;
+$pb = ($lr && isset($lr['extra_ball'])) ? leNormalizeExtraDigits((string) $lr['extra_ball']) : null;
 
 /* =======================================================================
  * FETCH ANALYSIS WINDOW ROWS
@@ -452,34 +506,52 @@ foreach ($rowsMain as $idx => $row) {
 $extraCounts   = [];
 $extraLastSeen = [];
 $rowsExtra     = [];
-
-for ($d = 0; $d <= 9; $d++) {
-    $extraCounts[$d]   = 0;
-    $extraLastSeen[$d] = null;
-}
+$extraValuesSorted = [];
 
 if ($extraBallGId) {
     $rowsExtra = leFetchRecentRows($db, $dbCol, $extraBallGId, $drawRange);
 
     foreach ($rowsExtra as $idx => $row) {
-        $ds = trim($row['first'] ?? '');
+        $extraValue = leNormalizeExtraValueFromRow($row);
 
-        if ($ds === '') {
+        if ($extraValue === null) {
             continue;
         }
 
-        $d = (int) $ds;
-
-        if ($d < 0 || $d > 9) {
-            continue;
+        if (!isset($extraCounts[$extraValue])) {
+            $extraCounts[$extraValue] = 0;
+            $extraLastSeen[$extraValue] = null;
         }
 
-        $extraCounts[$d]++;
+        $extraCounts[$extraValue]++;
 
-        if ($extraLastSeen[$d] === null) {
-            $extraLastSeen[$d] = $idx;
+        if ($extraLastSeen[$extraValue] === null) {
+            $extraLastSeen[$extraValue] = $idx;
         }
     }
+
+    $extraValuesSorted = array_keys($extraCounts);
+    usort($extraValuesSorted, static function ($a, $b) use ($extraCounts, $extraLastSeen) {
+        $ac = (int) ($extraCounts[$a] ?? 0);
+        $bc = (int) ($extraCounts[$b] ?? 0);
+        if ($ac !== $bc) {
+            return ($ac > $bc) ? -1 : 1;
+        }
+
+        $al = $extraLastSeen[$a];
+        $bl = $extraLastSeen[$b];
+        if ($al === null && $bl !== null) {
+            return 1;
+        }
+        if ($bl === null && $al !== null) {
+            return -1;
+        }
+        if ($al !== null && $bl !== null && $al !== $bl) {
+            return ($al < $bl) ? -1 : 1;
+        }
+
+        return strcmp((string) $a, (string) $b);
+    });
 }
 
 /* =======================================================================
@@ -506,7 +578,7 @@ $quietestKeys   = array_keys($sortedQuiet);
 $quietestLabels = array_map('strval', $quietestKeys);
 $quietestValues = array_values($sortedQuiet);
 
-/* Combined chart: digits 0–9 in natural order */
+/* Combined chart: digits 0ï¿½9 in natural order */
 $combinedLabels      = [];
 $combinedValues      = [];
 $recencyChartValues  = [];
@@ -523,9 +595,12 @@ for ($d = 0; $d <= 9; $d++) {
 $extraChartLabels = [];
 $extraChartValues = [];
 
-for ($d = 0; $d <= 9; $d++) {
-    $extraChartLabels[] = (string) $d;
-    $extraChartValues[] = (int) $extraCounts[$d];
+if (!empty($extraValuesSorted)) {
+    $extraChartKeys = array_slice($extraValuesSorted, 0, 10);
+    foreach ($extraChartKeys as $extraKey) {
+        $extraChartLabels[] = (string) $extraKey;
+        $extraChartValues[] = (int) $extraCounts[$extraKey];
+    }
 }
 
 /* Summary stats */
@@ -589,7 +664,7 @@ $latestDigits    = [(int) $p1, (int) $p2, (int) $p3, (int) $p4, (int) $p5];
 
 foreach ($latestDigits as $pidx => $digit) {
     $posCol   = $posNames[$pidx];
-    $posLabel = $posDisplayNames[$pidx] . ' — Digit ' . $digit;
+    $posLabel = $posDisplayNames[$pidx] . ' ï¿½ Digit ' . $digit;
 
     $prevDate = null;
     $drawsAgo = null;
@@ -618,7 +693,6 @@ foreach ($latestDigits as $pidx => $digit) {
 
 /* Extra ball draw history */
 if ($extraBallGId && $pb !== null && count($rowsExtra) > 0) {
-    $extraDigit = (int) $pb;
     $prevDate   = null;
     $drawsAgo   = null;
 
@@ -627,9 +701,9 @@ if ($extraBallGId && $pb !== null && count($rowsExtra) > 0) {
             continue;
         }
 
-        $rd = (int) trim($row['first'] ?? '');
+        $rd = leNormalizeExtraValueFromRow($row);
 
-        if ($rd === $extraDigit) {
+        if ($rd !== null && $rd === $pb) {
             $prevDate = $row['draw_date'] ?? null;
             $drawsAgo = $ridx;
             break;
@@ -637,7 +711,7 @@ if ($extraBallGId && $pb !== null && count($rowsExtra) > 0) {
     }
 
     $drawHistoryRows[] = [
-        'label'    => htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8') . ' — Digit ' . $extraDigit,
+        'label'    => (string) $extraBallLabel . ' - Value ' . $pb,
         'prevDate' => $prevDate,
         'drawsAgo' => $drawsAgo,
         'isBonus'  => true,
@@ -747,7 +821,7 @@ $formAction  = htmlspecialchars($uri->toString(['path']) . '?gmCode=' . rawurlen
 $jldPage = [
     '@context'    => 'https://schema.org',
     '@type'       => 'WebPage',
-    'name'        => 'Digit Frequency Analysis — ' . $stateName . ' ' . $lotteryName,
+    'name'        => 'Digit Frequency Analysis ï¿½ ' . $stateName . ' ' . $lotteryName,
     'description' => 'Per-position digit frequency analysis, heatmaps, recency tracking, and combination history for the ' . $stateName . ' ' . $lotteryName . '.',
     'url'         => $canonicalNoQuery,
     'inLanguage'  => 'en',
@@ -914,6 +988,11 @@ echo json_encode($jldPage, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNE
   box-shadow:0 12px 24px rgba(10,26,51,.18);
 }
 
+.skai-ball--extra{
+  width:auto;min-width:62px;padding:0 12px;border-radius:999px;
+  font-size:14px;line-height:1.1;
+}
+
 .skai-ball-gap{width:8px;height:1px}
 
 .skai-hero-actions{
@@ -1064,10 +1143,15 @@ echo json_encode($jldPage, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNE
 .skai-card-body{padding:14px 16px 16px}
 
 .skai-chart-frame{
-  position:relative;width:100%;height:300px;overflow:hidden;
+  position:relative;width:100%;max-width:100%;height:300px;overflow:hidden;box-sizing:border-box;
 }
 
 .skai-chart-frame--md{height:220px}
+
+.skai-chart-frame canvas{
+  display:block;width:100% !important;max-width:100%;
+  height:100% !important;box-sizing:border-box;
+}
 
 .skai-note{
   margin-top:14px;padding:14px 16px;border-radius:16px;
@@ -1213,6 +1297,10 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
 .skai-pill--bonus{
   background:radial-gradient(circle at 50% 18%,#C73E4E 0%,#8F1F2D 76%,#4A0911 100%);
   color:#fff;border:1px solid rgba(255,255,255,.14);
+}
+
+.skai-pill--extra{
+  width:auto;min-width:68px;padding:0 10px;border-radius:999px;
 }
 
 .skai-checkbox{transform:scale(1.25);cursor:pointer}
@@ -1431,7 +1519,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <span class="skai-ball skai-ball--main"><?php echo htmlspecialchars($p5, ENT_QUOTES, 'UTF-8'); ?></span>
             <?php if ($pb !== null && $pb !== '') : ?>
               <span class="skai-ball-gap" aria-hidden="true"></span>
-              <span class="skai-ball skai-ball--bonus" title="<?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($pb, ENT_QUOTES, 'UTF-8'); ?></span>
+              <span class="skai-ball skai-ball--bonus skai-ball--extra" title="<?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($pb, ENT_QUOTES, 'UTF-8'); ?></span>
             <?php endif; ?>
           </div>
 
@@ -1553,7 +1641,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
         <div class="skai-card">
           <div class="skai-card-head skai-card-head--horizon">
             Most active digits
-            <span class="skai-card-sub">Combined frequency across all positions in the last <?php echo (int) $drawRange; ?> draws — sorted by activity</span>
+            <span class="skai-card-sub">Combined frequency across all positions in the last <?php echo (int) $drawRange; ?> draws ï¿½ sorted by activity</span>
           </div>
           <div class="skai-card-body">
             <div class="skai-chart-frame">
@@ -1598,7 +1686,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       <div class="skai-two-col">
         <div class="skai-card">
           <div class="skai-card-head skai-card-head--radiant">
-            Current draw — positional recency
+            Current draw ï¿½ positional recency
             <span class="skai-card-sub">Previous appearance date and spacing for each latest digit by position</span>
           </div>
           <div class="skai-card-body">
@@ -1614,7 +1702,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
                     <?php endif; ?>
                   </div>
                   <div class="skai-history-badge<?php echo $hrow['isBonus'] ? ' skai-history-badge--bonus' : ''; ?>">
-                    <?php echo ($hrow['drawsAgo'] !== null) ? (int) $hrow['drawsAgo'] . ' drws ago' : '—'; ?>
+                    <?php echo ($hrow['drawsAgo'] !== null) ? (int) $hrow['drawsAgo'] . ' drws ago' : 'ï¿½'; ?>
                   </div>
                 </div>
               <?php endforeach; ?>
@@ -1658,7 +1746,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       <div>
         <h2 id="frequency-title" class="skai-section-title">Frequency deep dive</h2>
         <p class="skai-section-sub">
-          The full digit distribution across all five positions combined, a positional heatmap showing per-position behavior for digits 0&ndash;9, a recency distribution, and<?php echo $extraBallGId ? ' the ' . htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8') . ' distribution.' : ' the complete digit reference.'; ?>
+          The full digit distribution across all five positions combined, a positional heatmap showing per-position behavior for digits 0&ndash;9, a recency distribution, and<?php echo $extraBallGId ? ' the ' . htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8') . ' 4-digit value distribution.' : ' the complete digit reference.'; ?>
         </p>
       </div>
     </div>
@@ -1669,7 +1757,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
         <div class="skai-card">
           <div class="skai-card-head skai-card-head--horizon">
             Full combined digit distribution
-            <span class="skai-card-sub">All digits 0&ndash;9 combined across all five positions — last <?php echo (int) $drawRange; ?> draws</span>
+            <span class="skai-card-sub">All digits 0&ndash;9 combined across all five positions ï¿½ last <?php echo (int) $drawRange; ?> draws</span>
           </div>
           <div class="skai-card-body">
             <div class="skai-chart-frame">
@@ -1677,7 +1765,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             </div>
 
             <h3 style="margin:18px 0 6px;font-size:14px;font-weight:850;color:var(--deep-navy);">Per-position digit heatmap</h3>
-            <p style="margin:0 0 10px;font-size:13px;color:var(--text-soft);line-height:1.6;">Each row is a position (P1–P5). Each column is a digit (0–9). Color intensity reflects relative frequency within that position. Blue = high activity, amber = moderate, light = low.</p>
+            <p style="margin:0 0 10px;font-size:13px;color:var(--text-soft);line-height:1.6;">Each row is a position (P1ï¿½P5). Each column is a digit (0ï¿½9). Color intensity reflects relative frequency within that position. Blue = high activity, amber = moderate, light = low.</p>
 
             <div class="le-heatmap-grid" aria-label="Per-position digit heatmap">
               <?php foreach ($posNames as $pidx => $posCol) : ?>
@@ -1709,11 +1797,11 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <div class="skai-card">
               <div class="skai-card-head skai-card-head--radiant">
                 <?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> distribution
-                <span class="skai-card-sub">Digits 0&ndash;9 across the last <?php echo (int) $drawRange; ?> draws</span>
+                <span class="skai-card-sub">Top 4-digit values across the last <?php echo (int) $drawRange; ?> draws</span>
               </div>
               <div class="skai-card-body">
                 <div class="skai-chart-frame skai-chart-frame--md">
-                  <canvas id="extraBallChart" aria-label="<?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> distribution chart" role="img"></canvas>
+                  <canvas id="extraBallChart" aria-label="<?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> 4-digit value distribution chart" role="img"></canvas>
                 </div>
               </div>
             </div>
@@ -1735,7 +1823,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
       </div>
 
       <div class="skai-note">
-        The combined distribution and per-position heatmap are best used as reference layers. Numbers that appear concentrated in a specific position may behave differently across positions — the heatmap makes that asymmetry visible. The recency chart shows which digits are furthest from their last combined appearance.
+        The combined distribution and per-position heatmap are best used as reference layers. Numbers that appear concentrated in a specific position may behave differently across positions ï¿½ the heatmap makes that asymmetry visible. The recency chart shows which digits are furthest from their last combined appearance.
       </div>
     </div>
   </section>
@@ -1793,7 +1881,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
         <div class="skai-card">
           <div class="skai-card-head skai-card-head--horizon">
             Per-position digit frequency
-            <span class="skai-card-sub">Select a position to view digit 0–9 counts and recency</span>
+            <span class="skai-card-sub">Select a position to view digit 0ï¿½9 counts and recency</span>
           </div>
 
           <div class="skai-pos-tab-bar" aria-label="Position selector" role="tablist">
@@ -1804,7 +1892,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
                 data-pos="<?php echo htmlspecialchars($posNames[$pidx], ENT_QUOTES, 'UTF-8'); ?>"
                 role="tab"
                 aria-selected="<?php echo $pidx === 0 ? 'true' : 'false'; ?>"
-              ><?php echo htmlspecialchars($pshort . ' — ' . $posDisplayNames[$pidx], ENT_QUOTES, 'UTF-8'); ?></button>
+              ><?php echo htmlspecialchars($pshort . ' ï¿½ ' . $posDisplayNames[$pidx], ENT_QUOTES, 'UTF-8'); ?></button>
             <?php endforeach; ?>
           </div>
 
@@ -1902,48 +1990,53 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
             <div class="skai-card">
               <div class="skai-card-head skai-card-head--radiant">
                 <?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> frequency table
-                <span class="skai-card-sub">Digits 0&ndash;9 across the last <?php echo (int) $drawRange; ?> draws</span>
+                <span class="skai-card-sub">4-digit values across the last <?php echo (int) $drawRange; ?> draws</span>
               </div>
 
               <div class="skai-table-wrap">
                 <table id="skai-extra-table" class="skai-table" aria-label="<?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> frequency table">
                   <thead>
                     <tr>
-                      <th>Digit</th>
+                      <th>Value</th>
                       <th>Drawn Times</th>
                       <th>Last Drawn</th>
                       <th>Track</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <?php for ($d = 0; $d <= 9; $d++) : ?>
+                    <?php foreach ($extraValuesSorted as $extraValue) : ?>
                       <?php
-                      $eCount = (int) $extraCounts[$d];
-                      [$eSort, $eLabel] = leDrawingsAgoLabel($extraLastSeen[$d] ?? null, (int) $drawRange);
-                      $eTrackId = 'trk-extra-' . $d;
+                      $eCount = (int) ($extraCounts[$extraValue] ?? 0);
+                      [$eSort, $eLabel] = leDrawingsAgoLabel($extraLastSeen[$extraValue] ?? null, (int) $drawRange);
+                      $eTrackId = 'trk-extra-' . $extraValue;
                       ?>
                       <tr>
-                        <td><span class="skai-pill skai-pill--bonus"><?php echo $d; ?></span></td>
+                        <td><span class="skai-pill skai-pill--bonus skai-pill--extra"><?php echo htmlspecialchars((string) $extraValue, ENT_QUOTES, 'UTF-8'); ?></span></td>
                         <td><?php echo $eCount; ?> X</td>
                         <td data-sort="<?php echo (int) $eSort; ?>"><?php echo htmlspecialchars($eLabel, ENT_QUOTES, 'UTF-8'); ?></td>
                         <td>
                           <input
                             class="skai-checkbox js-track-extra"
                             type="checkbox"
-                            value="<?php echo $d; ?>"
+                            value="<?php echo htmlspecialchars((string) $extraValue, ENT_QUOTES, 'UTF-8'); ?>"
                             id="<?php echo htmlspecialchars($eTrackId, ENT_QUOTES, 'UTF-8'); ?>"
-                            aria-label="Track <?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> digit <?php echo $d; ?>"
+                            aria-label="Track <?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> value <?php echo htmlspecialchars((string) $extraValue, ENT_QUOTES, 'UTF-8'); ?>"
                           >
                         </td>
                       </tr>
-                    <?php endfor; ?>
+                    <?php endforeach; ?>
+                    <?php if (empty($extraValuesSorted)) : ?>
+                      <tr>
+                        <td colspan="4">No 4-digit <?php echo htmlspecialchars((string) $extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> values available in the selected draw range.</td>
+                      </tr>
+                    <?php endif; ?>
                   </tbody>
                 </table>
               </div>
 
               <div class="skai-tracked" style="margin:14px 16px 16px">
                 <div class="skai-tracked-head">
-                  <h3 class="skai-tracked-title">Tracked <?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> digits</h3>
+                  <h3 class="skai-tracked-title">Tracked <?php echo htmlspecialchars($extraBallLabel, ENT_QUOTES, 'UTF-8'); ?> values</h3>
                   <div class="skai-tracked-actions">
                     <button class="skai-link-btn" type="button" id="clearExtraTracked">Clear all</button>
                   </div>
@@ -2182,11 +2275,65 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
   }
 
   /* ------------------------------------------------------------------
+   * Chart safety helpers
+   * ------------------------------------------------------------------ */
+  var chartRegistry = {};
+
+  function canRenderCanvas(canvas) {
+    if (!canvas || !canvas.getContext) {
+      return false;
+    }
+
+    var parent = canvas.parentNode;
+    if (!parent || parent.clientWidth < 40) {
+      return false;
+    }
+
+    return true;
+  }
+
+  function destroyChartById(chartId) {
+    if (chartRegistry[chartId] && typeof chartRegistry[chartId].destroy === 'function') {
+      chartRegistry[chartId].destroy();
+      chartRegistry[chartId] = null;
+    }
+  }
+
+  function buildBarChart(chartId, canvas, labels, values, color, options) {
+    if (!canvas || !labels || !values || !labels.length || !values.length) {
+      destroyChartById(chartId);
+      return false;
+    }
+
+    if (!canRenderCanvas(canvas)) {
+      return false;
+    }
+
+    destroyChartById(chartId);
+
+    chartRegistry[chartId] = new Chart(canvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          borderWidth: 0,
+          borderRadius: 8,
+          backgroundColor: color
+        }]
+      },
+      options: options
+    });
+
+    return true;
+  }
+
+  /* ------------------------------------------------------------------
    * Render all charts
    * ------------------------------------------------------------------ */
   function renderCharts() {
     if (!window.Chart) {
-      return;
+      return 1;
     }
 
     var topActiveCanvas   = document.getElementById('topActiveChart');
@@ -2194,113 +2341,76 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     var fullCombCanvas    = document.getElementById('fullCombinedChart');
     var extraCanvas       = document.getElementById('extraBallChart');
     var recencyCanvas     = document.getElementById('recencyChart');
+    var pending = 0;
 
-    if (topActiveCanvas) {
-      new Chart(topActiveCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: chartData.topActiveLabels,
-          datasets: [{
-            data:            chartData.topActiveValues,
-            borderWidth:     0,
-            borderRadius:    8,
-            backgroundColor: '#1C66FF'
-          }]
-        },
-        options: commonBarOptions(false)
-      });
+    if (topActiveCanvas && !buildBarChart('topActiveChart', topActiveCanvas, chartData.topActiveLabels, chartData.topActiveValues, '#1C66FF', commonBarOptions(false))) {
+      pending++;
     }
 
-    if (quietCanvas) {
-      new Chart(quietCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: chartData.quietLabels,
-          datasets: [{
-            data:            chartData.quietValues,
-            borderWidth:     0,
-            borderRadius:    8,
-            backgroundColor: '#F5A623'
-          }]
-        },
-        options: commonBarOptions(false)
-      });
+    if (quietCanvas && !buildBarChart('quietChart', quietCanvas, chartData.quietLabels, chartData.quietValues, '#F5A623', commonBarOptions(false))) {
+      pending++;
     }
 
-    if (fullCombCanvas) {
-      new Chart(fullCombCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: chartData.combinedLabels,
-          datasets: [{
-            data:            chartData.combinedValues,
-            borderWidth:     0,
-            borderRadius:    8,
-            backgroundColor: '#1C66FF'
-          }]
-        },
-        options: commonBarOptions(false)
-      });
+    if (fullCombCanvas && !buildBarChart('fullCombinedChart', fullCombCanvas, chartData.combinedLabels, chartData.combinedValues, '#1C66FF', commonBarOptions(false))) {
+      pending++;
     }
 
-    if (extraCanvas && chartData.hasExtra) {
-      new Chart(extraCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: chartData.extraLabels,
-          datasets: [{
-            data:            chartData.extraValues,
-            borderWidth:     0,
-            borderRadius:    8,
-            backgroundColor: '#8F1F2D'
-          }]
-        },
-        options: commonBarOptions(false)
-      });
+    if (extraCanvas && chartData.hasExtra && chartData.extraLabels && chartData.extraLabels.length) {
+      if (!buildBarChart('extraBallChart', extraCanvas, chartData.extraLabels, chartData.extraValues, '#8F1F2D', commonBarOptions(false))) {
+        pending++;
+      }
+    } else {
+      destroyChartById('extraBallChart');
     }
 
-    if (recencyCanvas) {
-      new Chart(recencyCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: chartData.recencyLabels,
-          datasets: [{
-            data:            chartData.recencyValues,
-            borderWidth:     0,
-            borderRadius:    8,
-            backgroundColor: '#F5A623'
-          }]
-        },
-        options: {
-          responsive:          true,
-          maintainAspectRatio: false,
-          animation:           false,
-          plugins: {
-            legend:  { display: false },
-            tooltip: { enabled: true }
+    if (recencyCanvas && !buildBarChart('recencyChart', recencyCanvas, chartData.recencyLabels, chartData.recencyValues, '#F5A623', {
+      responsive:          true,
+      maintainAspectRatio: false,
+      animation:           false,
+      plugins: {
+        legend:  { display: false },
+        tooltip: { enabled: true }
+      },
+      scales: {
+        x: {
+          ticks: {
+            maxRotation:    0,
+            autoSkip:       true,
+            maxTicksLimit:  10,
+            font:           { weight: '700' }
           },
-          scales: {
-            x: {
-              ticks: {
-                maxRotation:    0,
-                autoSkip:       true,
-                maxTicksLimit:  10,
-                font:           { weight: '700' }
-              },
-              grid: { display: false }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0,
-                font:      { weight: '700' }
-              },
-              grid: { color: 'rgba(10,26,51,.08)' }
-            }
-          }
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0,
+            font:      { weight: '700' }
+          },
+          grid: { color: 'rgba(10,26,51,.08)' }
         }
-      });
+      }
+    })) {
+      pending++;
     }
+
+    return pending;
+  }
+
+  function bootChartsWithRetry() {
+    var attempts = 0;
+    var maxAttempts = 16;
+
+    function attemptRender() {
+      attempts++;
+      var pending = renderCharts();
+
+      if (pending > 0 && attempts < maxAttempts) {
+        window.setTimeout(attemptRender, 180);
+      }
+    }
+
+    attemptRender();
   }
 
   /* ------------------------------------------------------------------
@@ -2508,7 +2618,14 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     bindPositionFilters();
     bindTrackers();
     initAnchors();
-    loadChartJsIfNeeded(renderCharts);
+    loadChartJsIfNeeded(bootChartsWithRetry);
+
+    window.addEventListener('resize', function () {
+      window.clearTimeout(window.__leChartResizeTimer);
+      window.__leChartResizeTimer = window.setTimeout(function () {
+        renderCharts();
+      }, 180);
+    });
   }
 
   if (document.readyState === 'loading') {
