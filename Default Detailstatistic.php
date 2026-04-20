@@ -43,6 +43,7 @@ if (!preg_match('/^[a-z]{2}$/', $stateAbrevRaw)) {
         'missouri'     => 'mo',
         'florida'      => 'fl',
         'pennsylvania' => 'pa',
+        'virginia'     => 'va',
     ];
     $stateNameKey = strtolower(trim((string) str_replace('-', ' ', $stateNameRaw)));
     $stateAbrevRaw = $stateAbrevFromName[$stateNameKey] ?? '';
@@ -1684,8 +1685,8 @@ if ($gId === '801') {
         /** STRAIGHT 5 with 47 numbers -  **/
         }else if($gId === 'MN3'){ 
             include "anhisMN3.php";
-        /** STRAIGHT 5 with 0-9 digits + Fireball/Wild Ball Extra — FL Pick 5 Evening/Midday, PA Pick 5 Evening/Day **/
-        }else if($gId === 'FLH' || $gId === 'FLHF' || $gId === 'FLG' || $gId === 'FLGF' || $gId === 'PAF' || $gId === 'PAFW' || $gId === 'PAG' || $gId === 'PAEW'){
+        /** STRAIGHT 5 with 0-9 digits + Fireball/Wild Ball/EZ Match Extra — FL Pick 5 Evening/Midday, PA Pick 5 Evening/Day, VA Pick 5 Evening/Day **/
+        }else if($gId === 'FLH' || $gId === 'FLHF' || $gId === 'FLG' || $gId === 'FLGF' || $gId === 'PAF' || $gId === 'PAFW' || $gId === 'PAG' || $gId === 'PAEW' || $gId === 'VAE' || $gId === 'VAEF' || $gId === 'VAF' || $gId === 'VAFF'){
             $showPageHeader = false;
             include "anhisWin5extra.php";
 
