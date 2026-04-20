@@ -47,7 +47,7 @@ $gameInfoMap = [
         'stateAbrev'      => 'FL',
         'lottery'         => 'Pick 5 Evening',
         'mainGameId'      => 'FLH',
-        'extraBallSuffix' => 'F',
+        'extraBallGameId' => 'FLHF',
         'extraBallLabel'  => 'Fireball',
     ],
     'FLG' => [
@@ -55,7 +55,7 @@ $gameInfoMap = [
         'stateAbrev'      => 'FL',
         'lottery'         => 'Pick 5 Midday',
         'mainGameId'      => 'FLG',
-        'extraBallSuffix' => 'F',
+        'extraBallGameId' => 'FLGF',
         'extraBallLabel'  => 'Fireball',
     ],
     'PAF' => [
@@ -63,7 +63,7 @@ $gameInfoMap = [
         'stateAbrev'      => 'PA',
         'lottery'         => 'Pick 5 Evening',
         'mainGameId'      => 'PAF',
-        'extraBallSuffix' => 'W',
+        'extraBallGameId' => 'PAFW',
         'extraBallLabel'  => 'Wild Ball',
     ],
     'PAG' => [
@@ -71,7 +71,7 @@ $gameInfoMap = [
         'stateAbrev'      => 'PA',
         'lottery'         => 'Pick 5 Day',
         'mainGameId'      => 'PAG',
-        'extraBallSuffix' => 'W',
+        'extraBallGameId' => 'PAEW',
         'extraBallLabel'  => 'Wild Ball',
     ],
 ];
@@ -101,18 +101,26 @@ $extraBallLabel = 'Extra Ball';
 $gameFound     = false;
 
 foreach ($gameInfoMap as $infoKey => $gameInfo) {
-    $matchMain  = ($gameInfo['mainGameId'] === $gId);
-    $extraSuffix = isset($gameInfo['extraBallSuffix']) ? (string) $gameInfo['extraBallSuffix'] : '';
-    $extraFromMap = leBuildExtraGameId((string) $gameInfo['mainGameId'], $extraSuffix);
-    $matchExtra = ($extraFromMap !== null && $extraFromMap === $gId);
+    $mapMain = (string) $gameInfo['mainGameId'];
+
+    /* Resolve the extra game ID: prefer explicit field, fall back to suffix derivation. */
+    $resolvedExtraId = null;
+    if (isset($gameInfo['extraBallGameId']) && (string) $gameInfo['extraBallGameId'] !== '' && (string) $gameInfo['extraBallGameId'] !== $mapMain) {
+        $resolvedExtraId = (string) $gameInfo['extraBallGameId'];
+    } elseif (isset($gameInfo['extraBallSuffix'])) {
+        $resolvedExtraId = leBuildExtraGameId($mapMain, (string) $gameInfo['extraBallSuffix']);
+    }
+
+    $matchMain  = ($mapMain === $gId);
+    $matchExtra = ($resolvedExtraId !== null && $resolvedExtraId === $gId);
 
     if ($matchMain || $matchExtra) {
-        $mainGameId    = $gameInfo['mainGameId'];
-        $extraBallGId  = $extraFromMap;
+        $mainGameId    = $mapMain;
+        $extraBallGId  = $resolvedExtraId;
         $stateName     = $gameInfo['state'];
         $stateAbrev    = $gameInfo['stateAbrev'];
         $lotteryName   = $gameInfo['lottery'];
-        $extraBallLabel = isset($gameInfo['extraBallLabel']) ? $gameInfo['extraBallLabel'] : 'Extra Ball';
+        $extraBallLabel = isset($gameInfo['extraBallLabel']) ? (string) $gameInfo['extraBallLabel'] : 'Extra Ball';
         $gameFound     = true;
         break;
     }
@@ -737,7 +745,11 @@ $counts300 = array_fill(0, 10, 0);
 
 foreach ($rows50 as $row) {
     foreach ($posNames as $pn) {
-        $d = (int) trim($row[$pn] ?? '');
+        $ds = trim($row[$pn] ?? '');
+        if ($ds === '') {
+            continue;
+        }
+        $d = (int) $ds;
         if ($d >= 0 && $d <= 9) {
             $counts50[$d]++;
         }
@@ -746,7 +758,11 @@ foreach ($rows50 as $row) {
 
 foreach ($rows300 as $row) {
     foreach ($posNames as $pn) {
-        $d = (int) trim($row[$pn] ?? '');
+        $ds = trim($row[$pn] ?? '');
+        if ($ds === '') {
+            continue;
+        }
+        $d = (int) $ds;
         if ($d >= 0 && $d <= 9) {
             $counts300[$d]++;
         }
@@ -1710,7 +1726,7 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
                     <?php endif; ?>
                   </div>
                   <div class="skai-history-badge<?php echo $hrow['isBonus'] ? ' skai-history-badge--bonus' : ''; ?>">
-                    <?php echo ($hrow['drawsAgo'] !== null) ? (int) $hrow['drawsAgo'] . ' drws ago' : '�'; ?>
+                    <?php echo ($hrow['drawsAgo'] !== null) ? htmlspecialchars((string) ((int) $hrow['drawsAgo']) . ' drws ago', ENT_QUOTES, 'UTF-8') : '&mdash;'; ?>
                   </div>
                 </div>
               <?php endforeach; ?>
