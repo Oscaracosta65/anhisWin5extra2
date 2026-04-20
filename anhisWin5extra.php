@@ -727,7 +727,7 @@ if ($extraBallGId && $pb !== null && count($rowsExtra) > 0) {
     }
 
     $drawHistoryRows[] = [
-        'label'    => (string) $extraBallLabel . ' - Value ' . $pb,
+        'label'    => (string) $extraBallLabel . ' - Value ' . htmlspecialchars((string) $pb, ENT_QUOTES, 'UTF-8'),
         'prevDate' => $prevDate,
         'drawsAgo' => $drawsAgo,
         'isBonus'  => true,
