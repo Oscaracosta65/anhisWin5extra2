@@ -201,7 +201,7 @@ $hiddenTileGameIds = [
     'PADW','PACW','SCDF','SCCF','TNDW','TNBW','TNFW','TXBF','TXMF','TXLF','TXDF','VACF','VADF','CTAW','CTBW',
     'FLAF','FLCF','ILH','ILG','INBF','INAF','MSAF','MSBF','NCBF','NCAF','NJBF','NJAF','PABW','PAAW','SCBF',
     'SCAF','TNCW','TNAW','TNEW','TXCF','TXKF','TXJF','TXAF','VAAF','VABF','PAFW','PAEW','FLGF','FLHF','FLFF',
-    'FLEF','PAGW','PAHW','NJG'
+    'FLEF','PAGW','PAHW','NJG','VAEF','VAFF'
 ];
 
 $hiddenTileGameNames = [
@@ -1871,7 +1871,7 @@ foreach($drawResult as $dr){
                 'PADW','PACW','SCDF','SCCF','TNDW','TNBW','TNFW','TXBF','TXMF','TXLF','TXDF','VACF','VADF','CTAW','CTBW',
                 'FLAF','FLCF','ILH','ILG','INBF','INAF','MSAF','MSBF','NCBF','NCAF','NJBF','NJAF','PABW','PAAW','SCBF',
                 'SCAF','TNCW','TNAW','TNEW','TXCF','TXKF','TXJF','TXAF','VAAF','VABF','PAFW','PAEW','FLGF','FLHF','FLFF',
-                'FLEF','PAGW','PAHW','NJG'
+                'FLEF','PAGW','PAHW','NJG','VAEF','VAFF'
             ];
 
             $skaiDailyPickExcludeGameNames = [
@@ -1880,7 +1880,7 @@ foreach($drawResult as $dr){
             ];
             
                /** EXCLUDE DAILY PICKS **/
-            if ($gId != '101D' && $gId != 'FLDF' && $gId != 'FLBF' && $gId != 'ILI' && $gId != 'ILJ' && $gId != 'CTCW' && $gId != 'CTDW' && $gId != 'INDF' && $gId != 'INCF' && $gId != 'MSCF' && $gId != 'MSDF' && $gId != 'NJDF' && $gId != 'NJCF' && $gId != 'NCCF' && $gId != 'NCDF' && $gId != 'PADW' && $gId != 'PACW' && $gId != 'SCDF' && $gId != 'SCCF' && $gId != 'TNDW' && $gId != 'TNBW' && $gId != 'TNFW' && $gId != 'TXBF' && $gId != 'TXMF' && $gId != 'TXLF' && $gId != 'TXDF' && $gId != 'VACF' && $gId != 'VADF' && $gId != 'CTAW' && $gId != 'CTBW' && $gId != 'FLAF' && $gId != 'FLCF' && $gId != 'ILH' && $gId != 'ILG' && $gId != 'INBF' && $gId != 'INAF' && $gId != 'MSAF' && $gId != 'MSBF' && $gId != 'NCBF' && $gId != 'NCAF' && $gId != 'NJBF' && $gId != 'NJAF' && $gId != 'PABW' && $gId != 'PAAW' && $gId != 'SCBF' && $gId != 'SCAF' && $gId != 'TNCW' && $gId != 'TNAW' && $gId != 'TNEW' && $gId != 'TXCF' && $gId != 'TXKF' && $gId != 'TXJF' && $gId != 'TXAF' && $gId != 'VAAF' && $gId != 'VABF'  && $gId != 'PAFW' && $gId != 'PAEW' && $gId != 'FLGF' && $gId != 'FLHF' && $gId != 'FLFF' && $gId != 'FLEF' && $gId != 'PAGW' && $gId != 'PAHW' && $gId != 'NJG' && $gName != 'Evening 3 Double' && $gName != 'Pick 4 Day Wild') {
+            if ($gId != '101D' && $gId != 'FLDF' && $gId != 'FLBF' && $gId != 'ILI' && $gId != 'ILJ' && $gId != 'CTCW' && $gId != 'CTDW' && $gId != 'INDF' && $gId != 'INCF' && $gId != 'MSCF' && $gId != 'MSDF' && $gId != 'NJDF' && $gId != 'NJCF' && $gId != 'NCCF' && $gId != 'NCDF' && $gId != 'PADW' && $gId != 'PACW' && $gId != 'SCDF' && $gId != 'SCCF' && $gId != 'TNDW' && $gId != 'TNBW' && $gId != 'TNFW' && $gId != 'TXBF' && $gId != 'TXMF' && $gId != 'TXLF' && $gId != 'TXDF' && $gId != 'VACF' && $gId != 'VADF' && $gId != 'CTAW' && $gId != 'CTBW' && $gId != 'FLAF' && $gId != 'FLCF' && $gId != 'ILH' && $gId != 'ILG' && $gId != 'INBF' && $gId != 'INAF' && $gId != 'MSAF' && $gId != 'MSBF' && $gId != 'NCBF' && $gId != 'NCAF' && $gId != 'NJBF' && $gId != 'NJAF' && $gId != 'PABW' && $gId != 'PAAW' && $gId != 'SCBF' && $gId != 'SCAF' && $gId != 'TNCW' && $gId != 'TNAW' && $gId != 'TNEW' && $gId != 'TXCF' && $gId != 'TXKF' && $gId != 'TXJF' && $gId != 'TXAF' && $gId != 'VAAF' && $gId != 'VABF'  && $gId != 'PAFW' && $gId != 'PAEW' && $gId != 'FLGF' && $gId != 'FLHF' && $gId != 'FLFF' && $gId != 'FLEF' && $gId != 'PAGW' && $gId != 'PAHW' && $gId != 'NJG' && $gId != 'VAEF' && $gId != 'VAFF' && $gName != 'Evening 3 Double' && $gName != 'Pick 4 Day Wild') {
                 
 echo '<div class="resultWrap lottery-tile">'; // added lottery-tile for unified SKAI card styling
 echo '<h2>'.htmlspecialchars($gName, ENT_QUOTES, 'UTF-8').'</h2>';
@@ -3269,6 +3269,39 @@ echo '</a>';
                     echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><br /></p>';
                     echo '<p class="lstResult">Fireball: <span class="circlesPb">'.htmlspecialchars($fbResult, ENT_QUOTES, 'UTF-8').'</span><br /></p>';
                 
+
+                   /** Virginia Pick 5 Evening (VAE) with EZ Match **/
+                   }else if($gId === 'VAE'){
+
+                    $db = Factory::getDbo();
+                    $qDate  = $db->quote(date('Y-m-d', strtotime($dDate)));
+                    $qState = $db->quote($stNameNormalized);
+                    $sqlfb = "SELECT `draw_results` FROM `$dbCol` WHERE TRIM(LOWER(REPLACE(`stateprov_name`, '-', ' '))) = $qState AND `game_id` = 'VAEF' AND DATE(`draw_date`) = $qDate ORDER BY `id` DESC LIMIT 1";
+                    $db->setQuery($sqlfb);
+                    $db->execute();
+
+                    $fbRaw    = (string) $db->loadResult();
+                    $fbResult = preg_replace('/\D+/', '', $fbRaw);
+
+                    echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><br /></p>';
+                    echo '<p class="lstResult">EZ Match: <span class="circlesPb">'.htmlspecialchars($fbResult, ENT_QUOTES, 'UTF-8').'</span><br /></p>';
+
+
+                   /** Virginia Pick 5 Day (VAF) with EZ Match **/
+                   }else if($gId === 'VAF'){
+
+                    $db = Factory::getDbo();
+                    $qDate  = $db->quote(date('Y-m-d', strtotime($dDate)));
+                    $qState = $db->quote($stNameNormalized);
+                    $sqlfb = "SELECT `draw_results` FROM `$dbCol` WHERE TRIM(LOWER(REPLACE(`stateprov_name`, '-', ' '))) = $qState AND `game_id` = 'VAFF' AND DATE(`draw_date`) = $qDate ORDER BY `id` DESC LIMIT 1";
+                    $db->setQuery($sqlfb);
+                    $db->execute();
+
+                    $fbRaw    = (string) $db->loadResult();
+                    $fbResult = preg_replace('/\D+/', '', $fbRaw);
+
+                    echo '<p class="lstResult">Last Result: '.date('m-d-Y',strtotime($dDate)).'<br /><span class="circles">'.$posOne.'</span><span class="circles">'.$posTwo.'</span><span class="circles">'.$posThree.'</span><span class="circles">'.$posFour.'</span><span class="circles">'.$posFive.'</span><br /></p>';
+                    echo '<p class="lstResult">EZ Match: <span class="circlesPb">'.htmlspecialchars($fbResult, ENT_QUOTES, 'UTF-8').'</span><br /></p>';
 
 
                    }else if($gId === 'FLH'){
