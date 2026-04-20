@@ -102,11 +102,8 @@ $gameFound     = false;
 
 foreach ($gameInfoMap as $infoKey => $gameInfo) {
     $matchMain  = ($gameInfo['mainGameId'] === $gId);
-    $extraFromMap = null;
-    $extraSuffix = isset($gameInfo['extraBallSuffix']) ? trim((string) $gameInfo['extraBallSuffix']) : '';
-    if ($extraSuffix !== '' && preg_match('/^[A-Z0-9]$/', $extraSuffix)) {
-        $extraFromMap = (string) $gameInfo['mainGameId'] . $extraSuffix;
-    }
+    $extraSuffix = isset($gameInfo['extraBallSuffix']) ? (string) $gameInfo['extraBallSuffix'] : '';
+    $extraFromMap = leBuildExtraGameId((string) $gameInfo['mainGameId'], $extraSuffix);
     $matchExtra = ($extraFromMap !== null && $extraFromMap === $gId);
 
     if ($matchMain || $matchExtra) {
@@ -235,6 +232,16 @@ function leEscapeJsString(string $value): string
         ["\\\\", "\\'", '', '', '<\/'],
         $value
     );
+}
+
+function leBuildExtraGameId(string $mainGameId, string $extraSuffix): ?string
+{
+    $suffix = strtoupper(trim($extraSuffix));
+    if ($suffix === '' || !preg_match('/^[A-Z0-9]$/', $suffix)) {
+        return null;
+    }
+
+    return $mainGameId . $suffix;
 }
 
 function leNormalizeExtraDigits(string $raw): ?string
@@ -2197,9 +2204,11 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     extraValues:     <?php echo json_encode(array_values($extraChartValues)); ?>,
     hasExtra:        <?php echo $extraBallGId ? 'true' : 'false'; ?>
   };
+  /* Delay/retry values tuned to allow post-layout chart containers to stabilize. */
   var CHART_RENDER_RETRY_DELAY_MS = 180;
   var CHART_RENDER_MAX_RETRIES = 16;
   var MIN_CHART_CONTAINER_WIDTH = 40;
+  var chartResizeTimer = null;
 
   /* ------------------------------------------------------------------
    * Chart.js loader
@@ -2625,8 +2634,8 @@ table.skai-table tbody tr:hover{background:rgba(28,102,255,.04)}
     loadChartJsIfNeeded(bootChartsWithRetry);
 
     window.addEventListener('resize', function () {
-      window.clearTimeout(window._leChartResizeTimer);
-      window._leChartResizeTimer = window.setTimeout(function () {
+      window.clearTimeout(chartResizeTimer);
+      chartResizeTimer = window.setTimeout(function () {
         renderCharts();
       }, CHART_RENDER_RETRY_DELAY_MS);
     });
